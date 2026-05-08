@@ -1,0 +1,1327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Reasoning Paths — Deductive & Inductive Trajectories</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper:      #f2efe8;
+    --paper-2:    #e9e5db;
+    --paper-3:    #ddd8cb;
+    --ink:        #1a1915;
+    --ink-2:      #3a372f;
+    --ink-3:      #6b675b;
+    --ink-4:      #9c9689;
+    --rule:       #c9c3b4;
+    --rule-soft:  #d8d3c4;
+    --ded:        oklch(0.55 0.12 245);   /* deductive — cool */
+    --ded-soft:   oklch(0.88 0.05 245);
+    --ind:        oklch(0.58 0.14 38);    /* inductive — warm */
+    --ind-soft:   oklch(0.88 0.06 38);
+    --warn:       oklch(0.60 0.12 90);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); font-family: 'Inter Tight', system-ui, sans-serif; font-feature-settings: 'ss01','cv11'; }
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #e7e2d2 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #ece7d7 0%, transparent 55%),
+      var(--paper);
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-feature-settings: 'ss02','zero'; }
+  .num  { font-variant-numeric: tabular-nums; }
+
+  /* ============== Masthead ============== */
+  header.top {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: end;
+    gap: 24px;
+    padding: 28px 36px 20px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .eyebrow .dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ded); margin-right: 8px; transform: translateY(-1px);
+  }
+  h1.title {
+    font-family: 'Fraunces', 'Inter Tight', serif;
+    font-weight: 400;
+    font-size: 44px;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    margin: 6px 0 0 0;
+    font-variation-settings: 'opsz' 96;
+  }
+  h1.title em { font-style: italic; color: var(--ink-2); }
+  .top .center {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding-bottom: 6px;
+  }
+  .top .center .ver { color: var(--ink); }
+  .top .right {
+    justify-self: end;
+    display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-3);
+  }
+  .top .right .row { display: flex; gap: 10px; align-items: center; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 8px; border: 1px solid var(--rule); border-radius: 999px;
+    font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2);
+    background: rgba(255,255,255,0.35);
+  }
+  .chip .sw { width: 7px; height: 7px; border-radius: 50%; }
+  .chip.ded .sw { background: var(--ded); }
+  .chip.ind .sw { background: var(--ind); }
+
+  /* ============== Layout ============== */
+  main {
+    display: grid;
+    grid-template-columns: 320px 1fr 300px;
+    gap: 0;
+    min-height: calc(100vh - 130px);
+  }
+  aside.left, aside.right {
+    padding: 24px 24px 32px;
+    border-right: 1px solid var(--rule);
+    background: linear-gradient(180deg, rgba(255,255,255,0.25), rgba(255,255,255,0) 40%);
+  }
+  aside.right { border-right: none; border-left: 1px solid var(--rule); }
+  section.stage { position: relative; padding: 20px 24px 24px; }
+
+  .panel-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-3);
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 8px; margin-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .panel-title .tag { color: var(--ink); }
+  .panel-title .sw { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; transform: translateY(1px); }
+
+  .group { margin-bottom: 22px; }
+  .group + .group { border-top: 1px dashed var(--rule-soft); padding-top: 16px; }
+  .group-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--ink-4); margin-bottom: 10px;
+  }
+
+  /* ============== Controls ============== */
+  .field { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; margin: 10px 0; }
+  .field label { font-size: 12.5px; color: var(--ink-2); }
+  .field .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px; color: var(--ink);
+    padding: 2px 6px; border: 1px solid var(--rule); border-radius: 4px;
+    background: rgba(255,255,255,0.45);
+    min-width: 58px; text-align: right;
+  }
+  .field .slider { grid-column: 1 / -1; position: relative; height: 18px; }
+  .field input[type="range"] {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 2px;
+    background: var(--rule); border-radius: 0; outline: none; margin: 8px 0;
+  }
+  .field input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--ink); border: 2px solid var(--paper);
+    box-shadow: 0 0 0 1px var(--ink);
+    cursor: grab;
+  }
+  .field input[type="range"]::-moz-range-thumb {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--ink); border: 2px solid var(--paper);
+    box-shadow: 0 0 0 1px var(--ink); cursor: grab;
+  }
+  .group.ded input[type="range"]::-webkit-slider-thumb { background: var(--ded); box-shadow: 0 0 0 1px var(--ded); }
+  .group.ded input[type="range"]::-moz-range-thumb     { background: var(--ded); box-shadow: 0 0 0 1px var(--ded); }
+  .group.ind input[type="range"]::-webkit-slider-thumb { background: var(--ind); box-shadow: 0 0 0 1px var(--ind); }
+  .group.ind input[type="range"]::-moz-range-thumb     { background: var(--ind); box-shadow: 0 0 0 1px var(--ind); }
+
+  .tickbar { position: absolute; top: 14px; left: 0; right: 0; height: 4px; pointer-events: none; }
+  .tickbar span { position: absolute; top: 0; width: 1px; height: 4px; background: var(--ink-4); opacity: 0.4; }
+
+  /* Unlimited numeric inputs (replaces range sliders) */
+  .field input.freeinput {
+    grid-column: 1 / -1;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink);
+    width: 100%; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 4px;
+    background: rgba(255,255,255,0.55); text-align: right;
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+  }
+  .field input.freeinput:focus { outline: none; border-color: var(--ink); }
+  .group.ded input.freeinput:focus { border-color: var(--ded); }
+  .group.ind input.freeinput:focus { border-color: var(--ind); }
+
+  /* Walk dropdown */
+  .walk-select {
+    grid-column: 1 / -1;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink);
+    width: 100%; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 4px;
+    background: rgba(255,255,255,0.55);
+    margin-top: 2px; cursor: pointer;
+  }
+  .walk-select:focus { outline: none; border-color: var(--ink); }
+
+  /* highlight whichever parameter the walker is currently nudging */
+  .field.walking input.freeinput,
+  .coord-row.walking input[type="number"] {
+    border-color: var(--warn); background: rgba(242, 200, 120, 0.18);
+    box-shadow: 0 0 0 2px rgba(242, 200, 120, 0.25);
+  }
+
+  .toggle {
+    display: inline-flex; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden;
+    background: rgba(255,255,255,0.5);
+  }
+  .toggle button {
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em;
+    text-transform: uppercase; border: none; background: transparent; color: var(--ink-3);
+    padding: 6px 10px; cursor: pointer;
+  }
+  .toggle button.on { background: var(--ink); color: var(--paper); }
+  .group.ded .toggle button.on { background: var(--ded); color: var(--paper); }
+  .group.ind .toggle button.on { background: var(--ind); color: var(--paper); }
+  #walk_dir_tg button.on { background: var(--warn); color: var(--paper); }
+
+  .coord-row { display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 8px; margin: 6px 0; }
+  .coord-row .k { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-3); }
+  .coord-row input[type="number"] {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink);
+    width: 100%; padding: 5px 8px; border: 1px solid var(--rule); border-radius: 4px;
+    background: rgba(255,255,255,0.55); text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .coord-row input[type="number"]:focus { outline: none; border-color: var(--ink); }
+  .coord-row .unit { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-4); width: 28px; }
+
+  .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+  .btn {
+    flex: 1; padding: 9px 10px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; border-radius: 4px;
+  }
+  .btn.ghost { background: transparent; color: var(--ink); }
+  .btn.ghost.on { background: var(--warn); color: var(--paper); border-color: var(--warn); }
+  .btn:hover { opacity: 0.9; }
+
+  /* ============== Stage ============== */
+  .stage-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--rule);
+  }
+  .stage-head .crumbs { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-3); letter-spacing: 0.08em; }
+  .stage-head .crumbs b { color: var(--ink); font-weight: 600; }
+  .stage-head .actions { display: flex; gap: 6px; }
+  .icon-btn {
+    width: 28px; height: 28px; border: 1px solid var(--rule); background: rgba(255,255,255,0.5);
+    border-radius: 4px; cursor: pointer; color: var(--ink-2);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  }
+  .icon-btn:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .icon-btn.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .canvas-wrap {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    background:
+      linear-gradient(var(--rule-soft) 1px, transparent 1px) 0 0 / 40px 40px,
+      linear-gradient(90deg, var(--rule-soft) 1px, transparent 1px) 0 0 / 40px 40px,
+      linear-gradient(180deg, #f8f5ec, #ece7d7);
+    overflow: hidden;
+  }
+  #scene { width: 100%; height: 100%; display: block; }
+
+  .overlay {
+    position: absolute; pointer-events: none;
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+    color: var(--ink-3); letter-spacing: 0.08em;
+  }
+  .ov-tl { top: 12px; left: 14px; }
+  .ov-tr { top: 12px; right: 14px; text-align: right; }
+  .ov-bl { bottom: 12px; left: 14px; }
+  .ov-br { bottom: 12px; right: 14px; text-align: right; }
+  .ov-title { color: var(--ink); font-size: 11px; }
+  .ov-title .mark { display:inline-block; width: 18px; height: 1px; background: currentColor; vertical-align: middle; margin-right: 6px; }
+
+  .axis-key { display: flex; gap: 12px; }
+  .axis-key .k { display: inline-flex; align-items: center; gap: 5px; }
+  .axis-key .k .b { display: inline-block; width: 12px; height: 2px; }
+  .axis-key .k.x .b { background: #c53b3b; }
+  .axis-key .k.y .b { background: #2e8a55; }
+  .axis-key .k.z .b { background: #2f5fbd; }
+
+  /* ============== Readout column ============== */
+  .legend {
+    display: flex; flex-direction: column; gap: 10px;
+    border: 1px solid var(--rule); border-radius: 4px; padding: 12px;
+    background: rgba(255,255,255,0.35);
+  }
+  .legend-row { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
+  .legend-row .sw { width: 16px; height: 4px; border-radius: 2px; }
+  .legend-row .sw.ded { background: linear-gradient(90deg, var(--ded-soft), var(--ded)); }
+  .legend-row .sw.ind { background: linear-gradient(90deg, var(--ind-soft), var(--ind)); }
+  .legend-row .lbl { font-size: 12.5px; color: var(--ink-2); }
+  .legend-row .eq { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-4); }
+  .legend-row .n { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink); }
+
+  .stats { margin-top: 14px; }
+  .stat-row {
+    display: grid; grid-template-columns: 1fr auto;
+    align-items: baseline; padding: 8px 0; border-bottom: 1px dashed var(--rule-soft);
+  }
+  .stat-row:last-child { border-bottom: 0; }
+  .stat-row .k { font-size: 11.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; font-family: 'JetBrains Mono', monospace; }
+  .stat-row .v { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  .mini-plots { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 16px; }
+  .mini { border: 1px solid var(--rule); border-radius: 3px; background: rgba(255,255,255,0.4); aspect-ratio: 1 / 1; position: relative; }
+  .mini .lbl { position: absolute; top: 6px; left: 8px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--ink-3); letter-spacing: 0.08em; }
+  .mini canvas { width: 100%; height: 100%; display: block; }
+
+  /* ============== Footer ============== */
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 14px 36px; display: flex; justify-content: space-between; align-items: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-3);
+    letter-spacing: 0.08em;
+  }
+
+  /* responsive fallbacks */
+  @media (max-width: 1200px) {
+    main { grid-template-columns: 280px 1fr 280px; }
+  }
+  @media (max-width: 980px) {
+    main { grid-template-columns: 1fr; }
+    aside.left, aside.right { border: none; border-bottom: 1px solid var(--rule); }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <div class="eyebrow"><span class="dot"></span>Reasoning · Trajectory Studio</div>
+    <h1 class="title">The shape of <em>thinking</em>.</h1>
+  </div>
+  <div class="center">
+    <div>Algorithmic simulation of<br/>deductive &amp; inductive reasoning</div>
+    <div style="margin-top:6px; opacity:0.7">— v 2.0 · <span class="ver">logic_good</span> —</div>
+  </div>
+  <div class="right">
+    <div class="row">
+      <span class="chip ded"><span class="sw"></span>Deductive · Cartesian</span>
+      <span class="chip ind"><span class="sw"></span>Inductive · Spherical</span>
+    </div>
+    <div class="row" style="opacity:0.7">Domain [−2, 2]³ · aspect cube</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- =================== LEFT: controls =================== -->
+  <aside class="left">
+
+    <div class="panel-title"><span><span class="sw" style="background: var(--ded)"></span>Deductive</span><span class="tag">01</span></div>
+
+    <div class="group ded">
+      <div class="group-label">Initial thought · ⟨x, y, z⟩</div>
+      <div class="coord-row"><span class="k">x</span><input type="number" id="start_x" value="0.0" step="0.1" /><span class="unit">u</span></div>
+      <div class="coord-row"><span class="k">y</span><input type="number" id="start_y" value="0.0" step="0.1" /><span class="unit">u</span></div>
+      <div class="coord-row"><span class="k">z</span><input type="number" id="start_z" value="0.0" step="0.1" /><span class="unit">u</span></div>
+    </div>
+
+    <div class="group ded">
+      <div class="group-label">Z-increment · step size</div>
+      <div class="field">
+        <label>Δz</label><span class="val mono num" id="z_inc_val">0.10</span>
+        <input type="number" id="z_inc" step="0.01" value="0.1" class="freeinput" />
+      </div>
+      <div class="field">
+        <label>Steps · n</label><span class="val mono num" id="steps_val">5</span>
+        <input type="number" id="steps" step="1" value="5" class="freeinput" />
+      </div>
+    </div>
+
+    <div class="group ded">
+      <div class="group-label">Polarity</div>
+      <div class="toggle" id="ded_polarity_tg" data-name="ded_polarity">
+        <button data-val="up" class="on">↑ Up</button>
+        <button data-val="down">↓ Down</button>
+      </div>
+    </div>
+
+    <div style="height: 18px"></div>
+
+    <div class="panel-title"><span><span class="sw" style="background: var(--ind)"></span>Inductive</span><span class="tag">02</span></div>
+
+    <div class="group ind">
+      <div class="group-label">Initial existence · ⟨r, θ, φ⟩</div>
+      <div class="coord-row"><span class="k">r</span><input type="number" id="start_r" value="1.0" step="0.1" /><span class="unit">r</span></div>
+      <div class="coord-row"><span class="k">θ</span><input type="number" id="start_theta" value="1.5708" step="0.05" /><span class="unit">rad</span></div>
+      <div class="coord-row"><span class="k">φ</span><input type="number" id="start_phi" value="0.0" step="0.05" /><span class="unit">rad</span></div>
+    </div>
+
+    <div class="group ind">
+      <div class="group-label">Angular increments</div>
+      <div class="field">
+        <label>Δθ</label><span class="val mono num" id="theta_inc_val">0.050</span>
+        <input type="number" id="theta_inc" step="0.005" value="0.05" class="freeinput" />
+      </div>
+      <div class="field">
+        <label>Δφ</label><span class="val mono num" id="phi_inc_val">0.030</span>
+        <input type="number" id="phi_inc" step="0.005" value="0.03" class="freeinput" />
+      </div>
+    </div>
+
+    <div class="group ind">
+      <div class="group-label">Stochastic terms</div>
+      <div class="field">
+        <label>σ · noise</label><span class="val mono num" id="sigma_val">0.10</span>
+        <input type="number" id="sigma" step="0.01" value="0.1" class="freeinput" />
+      </div>
+      <div class="field">
+        <label>Iterations</label><span class="val mono num" id="iterations_val">10</span>
+        <input type="number" id="iterations" step="1" value="10" class="freeinput" />
+      </div>
+    </div>
+
+    <div class="group ind">
+      <div class="group-label">Polarity</div>
+      <div class="toggle" id="ind_polarity_tg" data-name="ind_polarity">
+        <button data-val="positive" class="on">+ Positive</button>
+        <button data-val="negative">− Negative</button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- =================== CENTER: stage =================== -->
+  <section class="stage">
+    <div class="stage-head">
+      <div class="crumbs">Fig. 01 / <b>Reasoning trajectories in ℝ³</b> · mode <span id="mode_ind">orbit</span></div>
+      <div class="actions">
+        <button class="icon-btn" id="btn_reseed" title="Reseed noise">↻</button>
+        <button class="icon-btn on" id="btn_grid" title="Toggle grid">▦</button>
+        <button class="icon-btn on" id="btn_axes" title="Toggle axes">⊕</button>
+        <button class="icon-btn" id="btn_anim" title="Play">▶</button>
+        <button class="icon-btn" id="btn_reset" title="Reset camera">⟲</button>
+      </div>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="scene"></canvas>
+
+      <div class="overlay ov-tl">
+        <div class="ov-title"><span class="mark" style="color: var(--ded)"></span>γ_D(t) = p₀ + t·Δz ẑ</div>
+        <div style="margin-top:4px; color: var(--ink-4)">n = <span id="ov_ded_n" class="mono num">6</span> pts</div>
+      </div>
+      <div class="overlay ov-tr">
+        <div class="ov-title"><span class="mark" style="color: var(--ind)"></span>γ_I(t) · spherical walk</div>
+        <div style="margin-top:4px; color: var(--ink-4)">n = <span id="ov_ind_n" class="mono num">11</span> pts</div>
+      </div>
+      <div class="overlay ov-bl axis-key">
+        <div class="k x"><span class="b"></span>X</div>
+        <div class="k y"><span class="b"></span>Y</div>
+        <div class="k z"><span class="b"></span>Z</div>
+      </div>
+      <div class="overlay ov-br">
+        <div>cam · az <span id="ov_az" class="mono num">045°</span> · el <span id="ov_el" class="mono num">25°</span></div>
+        <div style="margin-top:4px; color: var(--ink-4)">drag · orbit &nbsp; scroll · zoom</div>
+      </div>
+    </div>
+
+    <!-- projection small multiples -->
+    <div class="mini-plots">
+      <div class="mini"><span class="lbl">XY · plan</span><canvas id="proj_xy"></canvas></div>
+      <div class="mini"><span class="lbl">XZ · elevation</span><canvas id="proj_xz"></canvas></div>
+      <div class="mini"><span class="lbl">YZ · section</span><canvas id="proj_yz"></canvas></div>
+    </div>
+  </section>
+
+  <!-- =================== RIGHT: readout =================== -->
+  <aside class="right">
+    <div class="panel-title"><span>Readout</span><span class="tag">03</span></div>
+
+    <div class="legend">
+      <div class="legend-row">
+        <span class="sw ded"></span>
+        <div>
+          <div class="lbl">Deductive path</div>
+          <div class="eq">linear · Cartesian</div>
+        </div>
+        <span class="n" id="lg_ded_n">6</span>
+      </div>
+      <div class="legend-row">
+        <span class="sw ind"></span>
+        <div>
+          <div class="lbl">Inductive path</div>
+          <div class="eq">stochastic · spherical→ℝ³</div>
+        </div>
+        <span class="n" id="lg_ind_n">11</span>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-row"><span class="k">Δ end · separation</span><span class="v" id="st_sep">—</span></div>
+      <div class="stat-row"><span class="k">arc · deductive</span><span class="v" id="st_arc_d">—</span></div>
+      <div class="stat-row"><span class="k">arc · inductive</span><span class="v" id="st_arc_i">—</span></div>
+      <div class="stat-row"><span class="k">displacement · D</span><span class="v" id="st_disp_d">—</span></div>
+      <div class="stat-row"><span class="k">displacement · I</span><span class="v" id="st_disp_i">—</span></div>
+      <div class="stat-row"><span class="k">efficiency · I</span><span class="v" id="st_eff_i">—</span></div>
+      <div class="stat-row"><span class="k">σ · effective</span><span class="v" id="st_sigma">—</span></div>
+      <div class="stat-row"><span class="k">seed</span><span class="v" id="st_seed">—</span></div>
+    </div>
+
+    <div class="panel-title" style="margin-top: 24px"><span>Notes</span><span class="tag">04</span></div>
+    <p style="font-size: 12.5px; color: var(--ink-2); line-height: 1.55; margin: 0 0 10px 0;">
+      <b style="color: var(--ink)">Deduction</b> advances in a single axis at a fixed rate — from premise to conclusion.
+      The geometry is a line.
+    </p>
+    <p style="font-size: 12.5px; color: var(--ink-2); line-height: 1.55; margin: 0 0 10px 0;">
+      <b style="color: var(--ink)">Induction</b> wanders on a sphere, perturbed by noise that decays with iteration — evidence accrues, uncertainty shrinks.
+    </p>
+    <p style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-4); margin-top: 14px; letter-spacing: 0.04em;">
+      r ← r + 𝒩(0, σ)/(i+1)<br/>
+      θ ← θ + Δθ · s<br/>
+      φ ← φ + Δφ · s
+    </p>
+
+    <div class="panel-title" style="margin-top: 22px;"><span><span class="sw" style="background: var(--warn)"></span>Walk</span><span class="tag">04</span></div>
+
+    <div class="group">
+      <div class="group-label">Random walk · one param at a time</div>
+
+      <div class="field">
+        <label>Active parameter</label>
+        <select id="walk_param" class="walk-select">
+          <option value="__cycle__">↻ Auto-cycle all</option>
+          <option value="z_inc">Δz</option>
+          <option value="steps">Steps</option>
+          <option value="theta_inc">Δθ</option>
+          <option value="phi_inc">Δφ</option>
+          <option value="sigma">σ · noise</option>
+          <option value="iterations">Iterations</option>
+          <option value="start_x">start x</option>
+          <option value="start_y">start y</option>
+          <option value="start_z">start z</option>
+          <option value="start_r">start r</option>
+          <option value="start_theta">start θ</option>
+          <option value="start_phi">start φ</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Direction</label>
+        <div class="toggle" id="walk_dir_tg" data-name="walk_dir" style="grid-column: 1 / -1; margin-top: 2px;">
+          <button data-val="random" class="on">∿ Random</button>
+          <button data-val="up">↑ Increase</button>
+          <button data-val="down">↓ Decrease</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Step size · κ</label><span class="val mono num" id="walk_step_val">0.02</span>
+        <input type="number" id="walk_step" step="0.005" value="0.02" class="freeinput" />
+      </div>
+
+      <div class="field">
+        <label>Interval · ms</label><span class="val mono num" id="walk_ms_val">120</span>
+        <input type="number" id="walk_ms" step="10" value="120" class="freeinput" />
+      </div>
+
+      <div class="field">
+        <label>Hold · frames/param</label><span class="val mono num" id="walk_hold_val">60</span>
+        <input type="number" id="walk_hold" step="5" value="60" class="freeinput" />
+      </div>
+
+      <div class="coord-row" style="margin-top:10px;">
+        <span class="k">now</span>
+        <span class="mono" id="walk_status" style="color: var(--ink-3); font-size: 11px;">idle</span>
+        <span class="unit"></span>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" id="btn_export">Export PNG</button>
+      <button class="btn ghost" id="btn_preset">Preset ⇅</button>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn ghost" id="btn_walk">▶ Walk</button>
+      <button class="btn ghost" id="btn_walk_reset" title="Restore values at walk start">⤺ Restore</button>
+    </div>
+  </aside>
+
+</main>
+
+<footer>
+  <div>logic_good · reasoning paths studio</div>
+  <div>plot domain [−2, 2]³ · aspect cube · real-time · webgl</div>
+  <div><span id="f_fps" class="num">60</span> fps · <span id="f_pts" class="num">17</span> pts rendered</div>
+</footer>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { Line2 } from 'three/addons/lines/Line2.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+
+// ---------- State ----------
+const state = {
+  start_x: 0, start_y: 0, start_z: 0,
+  z_inc: 0.1, steps: 5, ded_polarity: 'up',
+  start_r: 1.0, start_theta: Math.PI/2, start_phi: 0,
+  theta_inc: 0.05, phi_inc: 0.03, sigma: 0.1, iterations: 10,
+  ind_polarity: 'positive',
+  seed: 0x42a1,
+  showGrid: true, showAxes: true, animate: false,
+};
+
+// ---------- Seeded RNG (mulberry32) with Box-Muller ----------
+function mulberry32(a) {
+  return function() {
+    let t = (a += 0x6D2B79F5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function makeGauss(rng) {
+  let spare = null;
+  return function() {
+    if (spare !== null) { const v = spare; spare = null; return v; }
+    let u, v, s;
+    do { u = rng()*2-1; v = rng()*2-1; s = u*u+v*v; } while (s>=1 || s===0);
+    const mul = Math.sqrt(-2*Math.log(s)/s);
+    spare = v*mul;
+    return u*mul;
+  };
+}
+
+// ---------- Path generators (faithful to the notebook) ----------
+function deductivePath() {
+  const pts = [];
+  let x = state.start_x, y = state.start_y, z = state.start_z;
+  const inc = state.ded_polarity === 'up' ? state.z_inc : -state.z_inc;
+  pts.push([x,y,z]);
+  for (let i = 0; i < state.steps; i++) {
+    z += inc;
+    pts.push([x,y,z]);
+  }
+  return pts;
+}
+function inductivePath() {
+  const rng = mulberry32(state.seed);
+  const gauss = makeGauss(rng);
+  let r = state.start_r, th = state.start_theta, ph = state.start_phi;
+  const ts = state.ind_polarity === 'positive' ? state.theta_inc : -state.theta_inc;
+  const ps = state.ind_polarity === 'positive' ? state.phi_inc : -state.phi_inc;
+  const sph = [[r,th,ph]];
+  for (let i = 0; i < state.iterations; i++) {
+    r += gauss() * state.sigma / (i+1);
+    th += ts;
+    ph += ps;
+    sph.push([r,th,ph]);
+  }
+  // spherical -> cartesian
+  return sph.map(([r,th,ph]) => [
+    r*Math.sin(th)*Math.cos(ph),
+    r*Math.sin(th)*Math.sin(ph),
+    r*Math.cos(th)
+  ]);
+}
+
+// ---------- Three.js scene ----------
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+const scene = new THREE.Scene();
+scene.background = null;
+
+const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 100);
+camera.position.set(4.2, 3.4, 4.2);
+camera.lookAt(0,0,0);
+
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 2;
+controls.maxDistance = 14;
+
+// Lighting (for any meshes)
+scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+const dir = new THREE.DirectionalLight(0xffffff, 0.4);
+dir.position.set(5,8,4);
+scene.add(dir);
+
+// ---------- Grid / bounding cube ----------
+const cubeGroup = new THREE.Group();
+scene.add(cubeGroup);
+
+function makeBoundingCube() {
+  const g = new THREE.Group();
+  const size = 4; // [-2, 2]
+  // wire edges
+  const geo = new THREE.BoxGeometry(size, size, size);
+  const edges = new THREE.EdgesGeometry(geo);
+  const mat = new THREE.LineBasicMaterial({ color: 0x1a1915, transparent: true, opacity: 0.22 });
+  g.add(new THREE.LineSegments(edges, mat));
+
+  // floor grid (xz plane at y=-2)
+  const gridMat = new THREE.LineBasicMaterial({ color: 0x1a1915, transparent: true, opacity: 0.10 });
+  const divs = 8;
+  const step = size / divs;
+  const floorGeo = new THREE.BufferGeometry();
+  const verts = [];
+  for (let i = 0; i <= divs; i++) {
+    const t = -size/2 + i*step;
+    // lines along x
+    verts.push(-size/2, -size/2, t,  size/2, -size/2, t);
+    verts.push(t, -size/2, -size/2,  t, -size/2, size/2);
+  }
+  floorGeo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  g.add(new THREE.LineSegments(floorGeo, gridMat));
+
+  // back wall (xy plane at z=-2)
+  const backGeo = new THREE.BufferGeometry();
+  const bverts = [];
+  for (let i = 0; i <= divs; i++) {
+    const t = -size/2 + i*step;
+    bverts.push(-size/2, t, -size/2,  size/2, t, -size/2);
+    bverts.push(t, -size/2, -size/2,  t,  size/2, -size/2);
+  }
+  backGeo.setAttribute('position', new THREE.Float32BufferAttribute(bverts, 3));
+  g.add(new THREE.LineSegments(backGeo, gridMat));
+
+  // side wall (yz plane at x=-2)
+  const sideGeo = new THREE.BufferGeometry();
+  const sverts = [];
+  for (let i = 0; i <= divs; i++) {
+    const t = -size/2 + i*step;
+    sverts.push(-size/2, -size/2, t, -size/2,  size/2, t);
+    sverts.push(-size/2, t, -size/2, -size/2, t,  size/2);
+  }
+  sideGeo.setAttribute('position', new THREE.Float32BufferAttribute(sverts, 3));
+  g.add(new THREE.LineSegments(sideGeo, gridMat));
+
+  // axis lines with tick marks
+  function axisLine(dirVec, color) {
+    const ax = new THREE.Group();
+    const len = 2;
+    const lmat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.75 });
+    const lgeo = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0,0,0),
+      new THREE.Vector3(dirVec.x*len, dirVec.y*len, dirVec.z*len),
+    ]);
+    ax.add(new THREE.Line(lgeo, lmat));
+    // arrow cone
+    const cone = new THREE.Mesh(
+      new THREE.ConeGeometry(0.045, 0.16, 16),
+      new THREE.MeshBasicMaterial({ color, transparent:true, opacity: 0.9 })
+    );
+    cone.position.set(dirVec.x*len, dirVec.y*len, dirVec.z*len);
+    // orient
+    cone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dirVec);
+    ax.add(cone);
+    return ax;
+  }
+  g.add(axisLine(new THREE.Vector3(1,0,0), 0xc53b3b));
+  g.add(axisLine(new THREE.Vector3(0,1,0), 0x2e8a55));
+  g.add(axisLine(new THREE.Vector3(0,0,1), 0x2f5fbd));
+
+  // origin dot
+  const originDot = new THREE.Mesh(
+    new THREE.SphereGeometry(0.03, 16, 16),
+    new THREE.MeshBasicMaterial({ color: 0x1a1915 })
+  );
+  g.add(originDot);
+
+  return g;
+}
+let cube = makeBoundingCube();
+cubeGroup.add(cube);
+
+// ---------- Path meshes ----------
+const dedColor = new THREE.Color('#3a6bbd');
+const indColor = new THREE.Color('#b85a2d');
+
+// "shadow" projections onto floor for each path
+const dedGroup = new THREE.Group();
+const indGroup = new THREE.Group();
+scene.add(dedGroup); scene.add(indGroup);
+
+function clearGroup(g) {
+  while (g.children.length) {
+    const c = g.children.pop();
+    if (c.geometry) c.geometry.dispose();
+    if (c.material) {
+      if (Array.isArray(c.material)) c.material.forEach(m=>m.dispose());
+      else c.material.dispose();
+    }
+  }
+}
+
+function buildPath(group, pts, color, opts={}) {
+  clearGroup(group);
+  if (pts.length < 2) return;
+  // Thick line via Line2
+  const positions = [];
+  const colors = [];
+  const c0 = new THREE.Color(color).lerp(new THREE.Color('#f2efe8'), 0.65);
+  const c1 = new THREE.Color(color);
+  for (let i = 0; i < pts.length; i++) {
+    positions.push(pts[i][0], pts[i][2], -pts[i][1]); // remap: notebook z is "up" → three y-up
+    const t = pts.length > 1 ? i/(pts.length-1) : 1;
+    const c = c0.clone().lerp(c1, t);
+    colors.push(c.r, c.g, c.b);
+  }
+  const geo = new LineGeometry();
+  geo.setPositions(positions);
+  geo.setColors(colors);
+  const mat = new LineMaterial({
+    color: 0xffffff,
+    linewidth: opts.width || 3.2,
+    vertexColors: true,
+    dashed: false,
+    transparent: true,
+    opacity: 0.95,
+  });
+  mat.resolution.set(canvas.clientWidth, canvas.clientHeight);
+  const line = new Line2(geo, mat);
+  line.computeLineDistances();
+  group.add(line);
+
+  // markers
+  const sphereGeo = new THREE.SphereGeometry(0.035, 14, 14);
+  for (let i = 0; i < pts.length; i++) {
+    const t = pts.length > 1 ? i/(pts.length-1) : 1;
+    const c = c0.clone().lerp(c1, t);
+    const m = new THREE.Mesh(sphereGeo.clone(), new THREE.MeshBasicMaterial({ color: c }));
+    m.position.set(pts[i][0], pts[i][2], -pts[i][1]);
+    group.add(m);
+  }
+
+  // start = ring, end = filled larger dot
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(0.06, 0.085, 24),
+    new THREE.MeshBasicMaterial({ color: c1, side: THREE.DoubleSide })
+  );
+  ring.position.set(pts[0][0], pts[0][2], -pts[0][1]);
+  ring.lookAt(camera.position);
+  group.add(ring);
+
+  const end = new THREE.Mesh(
+    new THREE.SphereGeometry(0.07, 18, 18),
+    new THREE.MeshBasicMaterial({ color: c1 })
+  );
+  end.position.set(pts[pts.length-1][0], pts[pts.length-1][2], -pts[pts.length-1][1]);
+  group.add(end);
+
+  // floor shadow projection
+  const shadowPos = [];
+  for (let i = 0; i < pts.length; i++) {
+    shadowPos.push(pts[i][0], -2, -pts[i][1]);
+  }
+  const shadowGeo = new LineGeometry();
+  shadowGeo.setPositions(shadowPos);
+  const shadowMat = new LineMaterial({
+    color: color, linewidth: 1.3, transparent: true, opacity: 0.35, dashed: true, dashSize: 0.1, gapSize: 0.06,
+  });
+  shadowMat.resolution.set(canvas.clientWidth, canvas.clientHeight);
+  const shadowLine = new Line2(shadowGeo, shadowMat);
+  shadowLine.computeLineDistances();
+  group.add(shadowLine);
+}
+
+// ---------- Mini projection canvases ----------
+function drawMini(id, ded, ind, ax, ay) {
+  const c = document.getElementById(id);
+  const dpr = Math.min(window.devicePixelRatio, 2);
+  const w = c.clientWidth || 100, h = c.clientHeight || 100;
+  c.width = w*dpr; c.height = h*dpr;
+  const ctx = c.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0,0,w,h);
+
+  // grid
+  ctx.strokeStyle = 'rgba(26,25,21,0.08)';
+  ctx.lineWidth = 1;
+  const N = 8;
+  for (let i = 0; i <= N; i++) {
+    const x = i*w/N, y = i*h/N;
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+  }
+  // axes
+  ctx.strokeStyle = 'rgba(26,25,21,0.25)';
+  ctx.beginPath(); ctx.moveTo(w/2, 0); ctx.lineTo(w/2, h); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, h/2); ctx.lineTo(w, h/2); ctx.stroke();
+
+  function toXY(p) {
+    // domain [-2, 2] on both axes
+    return [ (p[ax]+2)/4 * w, h - (p[ay]+2)/4 * h ];
+  }
+  function drawPath(pts, col) {
+    if (pts.length < 2) return;
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    for (let i = 0; i < pts.length; i++) {
+      const [X,Y] = toXY(pts[i]);
+      if (i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y);
+    }
+    ctx.stroke();
+    // dots
+    for (let i = 0; i < pts.length; i++) {
+      const [X,Y] = toXY(pts[i]);
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.arc(X,Y, i===0||i===pts.length-1 ? 3 : 1.8, 0, 2*Math.PI); ctx.fill();
+    }
+  }
+  drawPath(ded, '#3a6bbd');
+  drawPath(ind, '#b85a2d');
+}
+
+// ---------- Render + stats ----------
+let ded = [], ind = [];
+function regenerate() {
+  ded = deductivePath();
+  ind = inductivePath();
+  buildPath(dedGroup, ded, dedColor);
+  buildPath(indGroup, ind, indColor);
+
+  // projections
+  drawMini('proj_xy', ded, ind, 0, 1);
+  drawMini('proj_xz', ded, ind, 0, 2);
+  drawMini('proj_yz', ded, ind, 1, 2);
+
+  // stats
+  const fmt = (v, d=2) => (Number.isFinite(v) ? v.toFixed(d) : '—');
+  function arc(pts) {
+    let s = 0;
+    for (let i = 1; i < pts.length; i++) {
+      const dx = pts[i][0]-pts[i-1][0], dy = pts[i][1]-pts[i-1][1], dz = pts[i][2]-pts[i-1][2];
+      s += Math.sqrt(dx*dx+dy*dy+dz*dz);
+    }
+    return s;
+  }
+  function disp(pts) {
+    if (pts.length < 2) return 0;
+    const a = pts[0], b = pts[pts.length-1];
+    return Math.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2 + (a[2]-b[2])**2);
+  }
+  function sep() {
+    if (!ded.length || !ind.length) return 0;
+    const a = ded[ded.length-1], b = ind[ind.length-1];
+    return Math.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2 + (a[2]-b[2])**2);
+  }
+  const ad = arc(ded), ai = arc(ind), dd = disp(ded), di = disp(ind);
+  document.getElementById('st_arc_d').textContent = fmt(ad);
+  document.getElementById('st_arc_i').textContent = fmt(ai);
+  document.getElementById('st_disp_d').textContent = fmt(dd);
+  document.getElementById('st_disp_i').textContent = fmt(di);
+  document.getElementById('st_sep').textContent = fmt(sep());
+  document.getElementById('st_eff_i').textContent = ai > 0 ? (di/ai).toFixed(3) : '—';
+  document.getElementById('st_sigma').textContent = fmt(state.sigma, 3);
+  document.getElementById('st_seed').textContent = '0x' + state.seed.toString(16);
+
+  document.getElementById('ov_ded_n').textContent = ded.length;
+  document.getElementById('ov_ind_n').textContent = ind.length;
+  document.getElementById('lg_ded_n').textContent = ded.length;
+  document.getElementById('lg_ind_n').textContent = ind.length;
+  document.getElementById('f_pts').textContent = ded.length + ind.length;
+}
+
+function resize() {
+  const r = canvas.getBoundingClientRect();
+  const w = r.width, h = r.height;
+  renderer.setSize(w, h, false);
+  camera.aspect = w/h;
+  camera.updateProjectionMatrix();
+  // update line materials resolution
+  [dedGroup, indGroup].forEach(g => g.traverse(obj => {
+    if (obj.material && obj.material.resolution) obj.material.resolution.set(w, h);
+  }));
+}
+
+// FPS counter
+let lastTime = performance.now(); let frames = 0; let fps = 60;
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  if (state.animate) {
+    // gentle orbit
+    const t = performance.now() * 0.0002;
+    camera.position.x = 5 * Math.cos(t);
+    camera.position.z = 5 * Math.sin(t);
+    camera.lookAt(0,0,0);
+  }
+  // update overlay cam angles
+  const az = (Math.atan2(camera.position.x, camera.position.z) * 180/Math.PI + 360) % 360;
+  const el = Math.atan2(camera.position.y, Math.hypot(camera.position.x, camera.position.z))*180/Math.PI;
+  document.getElementById('ov_az').textContent = az.toFixed(0).padStart(3,'0')+'°';
+  document.getElementById('ov_el').textContent = el.toFixed(0)+'°';
+
+  renderer.render(scene, camera);
+
+  frames++;
+  const now = performance.now();
+  if (now - lastTime >= 1000) {
+    fps = frames; frames = 0; lastTime = now;
+    document.getElementById('f_fps').textContent = fps;
+  }
+}
+
+// ---------- Bind UI ----------
+function bindNumber(id) {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () => {
+    state[id] = parseFloat(el.value) || 0;
+    regenerate();
+  });
+}
+function bindSlider(id, fmt) {
+  const el = document.getElementById(id);
+  const val = document.getElementById(id + '_val');
+  const isInt = el.step && parseFloat(el.step) >= 1;
+  const update = () => {
+    state[id] = isInt ? parseInt(el.value) : parseFloat(el.value);
+    val.textContent = fmt ? fmt(state[id]) : (isInt ? state[id] : state[id].toFixed(el.step.includes('.') ? el.step.split('.')[1].length : 2));
+    regenerate();
+  };
+  el.addEventListener('input', update);
+  update();
+}
+['start_x','start_y','start_z','start_r','start_theta','start_phi'].forEach(bindNumber);
+bindSlider('z_inc',     v => v.toFixed(2));
+bindSlider('steps',     v => String(v));
+bindSlider('theta_inc', v => v.toFixed(3));
+bindSlider('phi_inc',   v => v.toFixed(3));
+bindSlider('sigma',     v => v.toFixed(2));
+bindSlider('iterations',v => String(v));
+
+// toggles
+function bindToggle(tgId, key) {
+  const tg = document.getElementById(tgId);
+  tg.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tg.querySelectorAll('button').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      state[key] = btn.dataset.val;
+      regenerate();
+    });
+  });
+}
+bindToggle('ded_polarity_tg', 'ded_polarity');
+bindToggle('ind_polarity_tg', 'ind_polarity');
+
+// buttons
+document.getElementById('btn_reseed').addEventListener('click', () => {
+  state.seed = Math.floor(Math.random() * 0xffffff);
+  regenerate();
+});
+document.getElementById('btn_grid').addEventListener('click', (e) => {
+  state.showGrid = !state.showGrid;
+  e.currentTarget.classList.toggle('on', state.showGrid);
+  cubeGroup.visible = state.showGrid;
+});
+document.getElementById('btn_axes').addEventListener('click', (e) => {
+  state.showAxes = !state.showAxes;
+  e.currentTarget.classList.toggle('on', state.showAxes);
+});
+document.getElementById('btn_anim').addEventListener('click', (e) => {
+  state.animate = !state.animate;
+  e.currentTarget.classList.toggle('on', state.animate);
+  e.currentTarget.textContent = state.animate ? '❚❚' : '▶';
+  document.getElementById('mode_ind').textContent = state.animate ? 'auto-orbit' : 'orbit';
+});
+document.getElementById('btn_reset').addEventListener('click', () => {
+  camera.position.set(4.2, 3.4, 4.2);
+  camera.lookAt(0,0,0);
+  controls.target.set(0,0,0);
+});
+document.getElementById('btn_export').addEventListener('click', () => {
+  renderer.render(scene, camera);
+  const url = canvas.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = url; a.download = 'reasoning-paths.png'; a.click();
+});
+
+// presets
+const presets = [
+  // baseline
+  {start_x:0,start_y:0,start_z:0,z_inc:0.1,steps:5,ded_polarity:'up',
+   start_r:1,start_theta:Math.PI/2,start_phi:0,theta_inc:0.05,phi_inc:0.03,sigma:0.1,iterations:10,ind_polarity:'positive'},
+  // chaos
+  {start_x:0,start_y:0,start_z:-1,z_inc:0.18,steps:18,ded_polarity:'up',
+   start_r:1.4,start_theta:1.2,start_phi:0.4,theta_inc:0.12,phi_inc:0.09,sigma:0.3,iterations:40,ind_polarity:'positive'},
+  // collapse
+  {start_x:0.3,start_y:-0.3,start_z:1.5,z_inc:0.12,steps:12,ded_polarity:'down',
+   start_r:1.8,start_theta:2.2,start_phi:-1.1,theta_inc:0.08,phi_inc:0.05,sigma:0.05,iterations:30,ind_polarity:'negative'},
+];
+let presetIdx = 0;
+document.getElementById('btn_preset').addEventListener('click', () => {
+  presetIdx = (presetIdx+1) % presets.length;
+  Object.assign(state, presets[presetIdx]);
+  // reflect in UI
+  ['start_x','start_y','start_z','start_r','start_theta','start_phi'].forEach(id => {
+    document.getElementById(id).value = state[id];
+  });
+  [['z_inc','z_inc_val',v=>v.toFixed(2)],
+   ['steps','steps_val',v=>String(v)],
+   ['theta_inc','theta_inc_val',v=>v.toFixed(3)],
+   ['phi_inc','phi_inc_val',v=>v.toFixed(3)],
+   ['sigma','sigma_val',v=>v.toFixed(2)],
+   ['iterations','iterations_val',v=>String(v)]].forEach(([id,vid,fn]) => {
+    document.getElementById(id).value = state[id];
+    document.getElementById(vid).textContent = fn(state[id]);
+  });
+  // toggles
+  document.querySelectorAll('#ded_polarity_tg button').forEach(b=>b.classList.toggle('on', b.dataset.val===state.ded_polarity));
+  document.querySelectorAll('#ind_polarity_tg button').forEach(b=>b.classList.toggle('on', b.dataset.val===state.ind_polarity));
+  regenerate();
+});
+
+// ---------- Random walk engine ----------
+// Each parameter random-walks around its *starting* value for `hold` frames,
+// then snaps back and advances to the next parameter (when auto-cycling).
+// "Walking" means: on each tick, add gaussian noise scaled by κ.
+// Integer params (steps, iterations) are rounded and floored at 1.
+const WALK_ORDER = [
+  'z_inc','steps','theta_inc','phi_inc','sigma','iterations',
+  'start_x','start_y','start_z','start_r','start_theta','start_phi'
+];
+const INT_PARAMS = new Set(['steps','iterations']);
+// per-param step-size multiplier so all params walk at comparable visual scales
+const PARAM_SCALE = {
+  z_inc: 1.0, steps: 40, theta_inc: 0.5, phi_inc: 0.5, sigma: 0.5, iterations: 60,
+  start_x: 2, start_y: 2, start_z: 2, start_r: 2, start_theta: 1.5, start_phi: 1.5
+};
+
+const walk = {
+  running: false,
+  timer: null,
+  frame: 0,                 // frame count within current param
+  idx: 0,                   // index into WALK_ORDER (cycle mode)
+  current: null,            // param currently being walked
+  snapshot: null,           // full state snapshot at walk start (for Restore)
+  anchor: {}                // per-param anchor value it's walking around
+};
+
+// Gaussian noise (standalone — doesn't share with seeded gauss)
+function walkNoise() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function setActiveParamHighlight(param) {
+  // clear old
+  document.querySelectorAll('.field.walking, .coord-row.walking').forEach(el => el.classList.remove('walking'));
+  if (!param) return;
+  const input = document.getElementById(param);
+  if (!input) return;
+  const container = input.closest('.field') || input.closest('.coord-row');
+  if (container) container.classList.add('walking');
+}
+
+function syncParamUI(param) {
+  // update the input's displayed value AND its readout (if present)
+  const input = document.getElementById(param);
+  if (!input) return;
+  const v = state[param];
+  input.value = INT_PARAMS.has(param) ? v : (+v).toFixed(
+    (input.step && input.step.includes('.')) ? input.step.split('.')[1].length : 3
+  );
+  const readout = document.getElementById(param + '_val');
+  if (readout) {
+    if (INT_PARAMS.has(param)) readout.textContent = String(v);
+    else readout.textContent = (+v).toFixed(
+      (input.step && input.step.includes('.')) ? input.step.split('.')[1].length : 2
+    );
+  }
+}
+
+function startWalk() {
+  walk.running = true;
+  walk.frame = 0;
+  walk.idx = 0;
+  walk.snapshot = JSON.parse(JSON.stringify(state));
+  const sel = document.getElementById('walk_param').value;
+  walk.current = (sel === '__cycle__') ? WALK_ORDER[0] : sel;
+  walk.anchor[walk.current] = state[walk.current];
+  setActiveParamHighlight(walk.current);
+  document.getElementById('btn_walk').textContent = '❚❚ Walking';
+  document.getElementById('btn_walk').classList.add('on');
+  tickWalk();
+}
+
+function stopWalk() {
+  walk.running = false;
+  if (walk.timer) { clearTimeout(walk.timer); walk.timer = null; }
+  setActiveParamHighlight(null);
+  document.getElementById('btn_walk').textContent = '▶ Walk';
+  document.getElementById('btn_walk').classList.remove('on');
+  document.getElementById('walk_status').textContent = 'idle';
+}
+
+function tickWalk() {
+  if (!walk.running) return;
+
+  const kappa = parseFloat(document.getElementById('walk_step').value) || 0;
+  const hold = Math.max(1, parseInt(document.getElementById('walk_hold').value) || 60);
+  const ms = Math.max(10, parseInt(document.getElementById('walk_ms').value) || 120);
+  const sel = document.getElementById('walk_param').value;
+  const dir = document.querySelector('#walk_dir_tg button.on')?.dataset.val || 'random';
+
+  const p = walk.current;
+  const scale = PARAM_SCALE[p] || 1;
+  const anchor = walk.anchor[p];
+  const stepMag = kappa * scale;
+
+  let next;
+  if (dir === 'up') {
+    next = state[p] + stepMag;
+  } else if (dir === 'down') {
+    next = state[p] - stepMag;
+  } else {
+    // random: Ornstein-Uhlenbeck-ish pull toward anchor
+    const pull = 0.08;
+    const curOffset = state[p] - anchor;
+    const noise = walkNoise() * stepMag;
+    next = anchor + curOffset * (1 - pull) + noise;
+  }
+
+  if (INT_PARAMS.has(p)) next = Math.max(1, Math.round(next));
+  state[p] = next;
+  syncParamUI(p);
+  regenerate();
+
+  // status line
+  const arrow = dir === 'up' ? '↑' : dir === 'down' ? '↓' : '∿';
+  document.getElementById('walk_status').textContent =
+    `${arrow} ${p} · f${walk.frame+1}/${hold}`;
+
+  walk.frame++;
+  if (walk.frame >= hold) {
+    // restore this parameter, advance if cycling
+    state[p] = walk.anchor[p];
+    syncParamUI(p);
+    if (sel === '__cycle__') {
+      walk.idx = (walk.idx + 1) % WALK_ORDER.length;
+      walk.current = WALK_ORDER[walk.idx];
+      walk.anchor[walk.current] = state[walk.current];
+      walk.frame = 0;
+      setActiveParamHighlight(walk.current);
+    } else {
+      // single-param mode: keep walking from wherever we are
+      // (for directional walks, re-anchor so "random" after switching makes sense)
+      walk.anchor[p] = state[p];
+      walk.frame = 0;
+    }
+  }
+
+  walk.timer = setTimeout(tickWalk, ms);
+}
+
+document.getElementById('btn_walk').addEventListener('click', () => {
+  if (walk.running) stopWalk();
+  else startWalk();
+});
+
+document.getElementById('btn_walk_reset').addEventListener('click', () => {
+  if (!walk.snapshot) return;
+  const wasRunning = walk.running;
+  if (wasRunning) stopWalk();
+  Object.assign(state, walk.snapshot);
+  // sync every UI field
+  WALK_ORDER.forEach(syncParamUI);
+  document.querySelectorAll('#ded_polarity_tg button').forEach(b=>b.classList.toggle('on', b.dataset.val===state.ded_polarity));
+  document.querySelectorAll('#ind_polarity_tg button').forEach(b=>b.classList.toggle('on', b.dataset.val===state.ind_polarity));
+  regenerate();
+});
+
+// if user picks a new param while walking, switch immediately
+document.getElementById('walk_param').addEventListener('change', () => {
+  if (!walk.running) return;
+  // restore previous
+  if (walk.current && walk.anchor[walk.current] !== undefined) {
+    state[walk.current] = walk.anchor[walk.current];
+    syncParamUI(walk.current);
+  }
+  const sel = document.getElementById('walk_param').value;
+  walk.current = (sel === '__cycle__') ? WALK_ORDER[walk.idx] : sel;
+  walk.anchor[walk.current] = state[walk.current];
+  walk.frame = 0;
+  setActiveParamHighlight(walk.current);
+});
+
+// keep walk readouts in sync
+[['walk_step', v => (+v).toFixed(3)],
+ ['walk_ms',   v => String(Math.max(10, parseInt(v)||120))],
+ ['walk_hold', v => String(Math.max(1,  parseInt(v)||60))]].forEach(([id, fmt]) => {
+  const el = document.getElementById(id);
+  const out = document.getElementById(id + '_val');
+  const upd = () => { out.textContent = fmt(el.value); };
+  el.addEventListener('input', upd);
+  upd();
+});
+
+// walk direction toggle
+document.querySelectorAll('#walk_dir_tg button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#walk_dir_tg button').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    // re-anchor the current param so switching to random mid-run doesn't snap back
+    if (walk.running && walk.current) {
+      walk.anchor[walk.current] = state[walk.current];
+    }
+  });
+});
+
+// init
+new ResizeObserver(resize).observe(canvas);
+resize();
+regenerate();
+animate();
+
+</script>
+</body>
+</html>
