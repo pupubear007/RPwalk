@@ -1,0 +1,85 @@
+<div id="root">
+  <div id="ctl" style="font-family:-apple-system,Segoe UI,Arial,sans-serif;font-size:13px;color:#33506e;display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin:4px 0 8px;">
+    <label style="display:flex;gap:8px;align-items:center;">height:
+      <span class="seg">
+        <button data-k="signedlog" class="on">signed log</button><button data-k="linear">linear</button>
+      </span>
+    </label>
+    <label style="display:flex;gap:8px;align-items:center;">style:
+      <span class="seg2">
+        <button data-k="surface" class="on">surface</button><button data-k="lines">curves per n</button>
+      </span>
+    </label>
+    <span style="color:#666;">drag to rotate · scroll to zoom</span>
+  </div>
+  <div id="plot" style="width:100%;height:560px;"></div>
+  <div id="cap" style="font-family:-apple-system,Segoe UI,Arial,sans-serif;font-size:12.5px;color:#666;line-height:1.5;margin-top:6px;"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+<style>
+  .seg,.seg2{display:inline-flex;border:1px solid #c9d6e8;border-radius:6px;overflow:hidden;}
+  .seg button,.seg2 button{border:0;background:#fff;padding:5px 11px;font-size:12.5px;cursor:pointer;color:#33506e;}
+  .seg button.on,.seg2 button.on{background:#2E75B6;color:#fff;}
+</style>
+<script>
+const PI=Math.PI;
+const Bf={
+ "-10":r=>-(r**5)/(32*PI**4),"-9":r=>32*PI**4/r**4,"-8":r=>-(r**4)/(16*PI**3),"-7":r=>16*PI**3/r**3,
+ "-6":r=>-(r**3)/(8*PI**2),"-5":r=>8*PI**2/r**2,"-4":r=>-(r**2)/(4*PI),"-3":r=>4*PI/r,"-2":r=>-r/2,"-1":r=>2/PI,
+ "0":r=>PI*r,"1":r=>2*r,"2":r=>PI*r*r,"3":r=>4/3*PI*r**3,"4":r=>4/5*PI**2*r**5,"5":r=>2/3*PI**3*r**8,
+ "6":r=>64/195*PI**5*r**13,"7":r=>128/945*PI**8*r**21,"8":r=>4096/149175*PI**13*r**34,
+ "9":r=>1048576/456080625*PI**21*r**55,"10":r=>4294967296/110094338615625*PI**34*r**89};
+const ns=[];for(let n=-10;n<=10;n++)ns.push(n);
+const rs=[];for(let r=-3;r<=3.0001;r+=0.1){const rr=+r.toFixed(3); if(Math.abs(rr)>=0.15) rs.push(rr);}
+const slog=v=>(!isFinite(v))?NaN:Math.sign(v)*Math.log10(1+Math.abs(v));
+
+let mode="signedlog", style="surface";
+
+function build(){
+  const tf = mode==="signedlog"?slog:(v=>v);
+  // z matrix: rows = r (y), cols = n (x)
+  const Z = rs.map(r => ns.map(n => tf(Bf[n](r))));
+  const ztitle = mode==="signedlog" ? "sign(Bₙ)·log₁₀|Bₙ|" : "Bₙ";
+  let traces;
+  if(style==="surface"){
+    const rNeg=rs.filter(r=>r<0), rPos=rs.filter(r=>r>0);
+    const mk=(rgrid,showscale)=>({
+      type:"surface", x:ns, y:rgrid, z:rgrid.map(r=>ns.map(n=>tf(Bf[n](r)))),
+      colorscale:[[0,"#c0392b"],[0.5,"#f4f0e6"],[1,"#1f5fa6"]],
+      cmin:-55,cmax:55,cmid:0, showscale:showscale,
+      colorbar:{title:{text:ztitle,side:"right"},thickness:12,len:0.6},
+      contours:{z:{show:true,usecolormap:true,project:{z:true},width:1}},
+      hovertemplate:"n=%{x}<br>r=%{y:.2f}<br>"+ztitle+"=%{z:.3f}<extra></extra>"
+    });
+    traces=[mk(rNeg,false),mk(rPos,true)];
+  } else {
+    // one line per n across r
+    traces = ns.map(n=>{
+      const zline = rs.map(r=>tf(Bf[n](r)));
+      const positive = Bf[n](1)>=0;
+      return {type:"scatter3d",mode:"lines",
+        x:rs.map(_=>n), y:rs, z:zline,
+        line:{width:4,color:positive?"#1f5fa6":"#c0392b"},
+        name:"n="+n, showlegend:false,
+        hovertemplate:"n="+n+"<br>r=%{y:.2f}<br>"+ztitle+"=%{z:.3f}<extra></extra>"};
+    });
+  }
+  const layout={
+    margin:{l:0,r:0,t:0,b:0},
+    scene:{
+      xaxis:{title:{text:"n  (index)"},dtick:2,backgroundcolor:"#f7f9fc",gridcolor:"#dde6f0",showbackground:true},
+      yaxis:{title:{text:"r  (radius)"},backgroundcolor:"#f7f9fc",gridcolor:"#dde6f0",showbackground:true},
+      zaxis:{title:{text:ztitle},backgroundcolor:"#f7f9fc",gridcolor:"#dde6f0",showbackground:true},
+      camera:{eye:{x:1.7,y:-1.6,z:0.9}},
+      aspectratio:{x:1.5,y:1,z:1}
+    }
+  };
+  Plotly.react("plot",traces,layout,{responsive:true,displayModeBar:true,displaylogo:false});
+}
+document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{
+  mode=b.dataset.k;document.querySelectorAll(".seg button").forEach(x=>x.classList.toggle("on",x.dataset.k===mode));build();});
+document.querySelectorAll(".seg2 button").forEach(b=>b.onclick=()=>{
+  style=b.dataset.k;document.querySelectorAll(".seg2 button").forEach(x=>x.classList.toggle("on",x.dataset.k===style));build();});
+document.getElementById("cap").innerHTML="Vertical height is Bₙ (signed-log by default — |Bₙ| now spans ~10⁻² to 10⁵⁴ over this range). Floor plane = <b>n</b> × <b>r</b>, with r running −3 to 3. Blue = positive, red = negative. A vertical gap straddles r = 0, where the negative-index terms diverge. Note the <b>parity across r = 0</b>: terms with an odd power of r (e.g. n = 10 ∝ r⁸⁹) flip sign as r goes negative, so the surface mirrors top-to-bottom; terms with an even r-power (e.g. n = 8 ∝ r³⁴) are unchanged, staying on the same side. Negative r is a purely formal extension — a radius isn't physically negative — but the algebraic expressions evaluate cleanly away from the origin.";
+build();
+</script>
