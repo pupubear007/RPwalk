@@ -46,9 +46,9 @@ We introduce and analyze a three-term multiplicative recurrence relation
 \[
 \partial B_{n+1}(r) = \partial B_n(r) \cdot B_{n-1}(r)
 \]
-that generates infinite families of explicit monomial expressions for ``surface'' terms \(\partial B_n(r)\) and ``volume'' terms \(B_n(r)\). The seeds are chosen so that the recurrence recovers the classical geometric formulas for the circle (\(n=1,2\)) and the 3-ball (\(n=3\)). Forward iteration produces terms whose polynomial degrees in \(r\) and powers of \(\pi\) grow according to Fibonacci-like sequences, while backward iteration yields a formal analytic continuation to negative indices featuring negative and reciprocal powers of \(r\).
+that generates infinite families of explicit monomial expressions for ``surface'' terms \(\partial B_n(r)\) and ``volume'' terms \(B_n(r)\). The seeds are chosen so that the recurrence recovers the classical geometric formulas for the circle (\(n=1,2\)) and the 3-ball (\(n=3\)). Forward iteration produces terms whose polynomial degrees in \(r\) and powers of \(\pi\) are exactly Fibonacci numbers, while backward iteration yields a formal extension to negative indices featuring negative and reciprocal powers of \(r\).
 
-We present the complete explicit table for \(-10 \leq n \leq 10\), prove by direct construction and substitution that every entry satisfies the recurrence identically for \(r \neq 0\), and discuss the precise sense in which the integral relation \(B_n = \int_0^r \partial B_n \, dr'\) holds. An accompanying interactive three-dimensional visualization reveals striking sign-parity properties across \(r = 0\) and the enormous dynamic range of the family (spanning more than 50 orders of magnitude). 
+We present the complete explicit table for \(-10 \leq n \leq 10\), prove by direct construction and substitution that every entry satisfies the recurrence identically for \(r \neq 0\), and clarify the precise (and limited) sense in which the integral relation \(B_n = \int_0^r \partial B_n \, dr'\) holds: it generates the positive branch but not the negative one. An accompanying interactive three-dimensional visualization reveals striking sign-parity properties across \(r = 0\) and the enormous dynamic range of the family (spanning more than 50 orders of magnitude). 
 
 Possible physical applications are outlined in the contexts of dimensional regularization in quantum field theory, effective-dimension models in statistical mechanics, and recursive geometric constructions that appear in certain growth or self-consistent-field problems. We emphasize that the family is \emph{not} a continuation of the \(n\)-ball volume: it coincides with the classical volume only at \(n=1,2,3\), because its radial exponents are the Fibonacci numbers rather than \(n\). It is instead an independent, purely algebraic sequence whose multiplicative structure and exact rational coefficients may nonetheless be of conceptual interest.
 \end{abstract}
@@ -81,13 +81,13 @@ wherever the integral converges. The seeds are chosen as
 \partial B_{-2} &= -\frac12, & B_{-2} &= -\frac{r}{2}, \\
 \partial B_{-3} &= \frac{2\pi}{r^2}, & B_{-3} &= \frac{4\pi}{r}.
 \end{align*}
-These seeds are the minimal set that simultaneously reproduces the classical circle and sphere while allowing a consistent backward extension.
+These seeds are the minimal set that simultaneously reproduces the classical circle and sphere while allowing a consistent backward extension. We retain the names ``surface'' and ``volume'' for \(\partial B_n\) and \(B_n\) by analogy with the seed cases, but stress that the multiplicative law~\eqref{eq:recurrence} is purely algebraic: it multiplies a ``surface'' by a ``volume'' to produce the next ``surface,'' an operation with no dimensional or geometric meaning beyond \(n=3\). The geometric content is confined to the seeds; everything above is algebra.
 
 Forward iteration immediately recovers the familiar 3-ball:
 \[
 \partial B_3 = (2\pi r)\cdot(2r) = 4\pi r^2, \qquad B_3 = \int_0^r 4\pi r'^2 \, dr' = \frac{4}{3}\pi r^3.
 \]
-Higher terms generate a new hierarchy whose radial degrees follow a Fibonacci-like recurrence, producing expressions of rapidly increasing complexity. Backward iteration produces a formal extension to negative indices whose leading terms are rational functions with poles at the origin.
+Higher terms generate a new hierarchy whose radial degrees are exactly the Fibonacci numbers, producing expressions of rapidly increasing complexity. Backward iteration produces a formal extension to negative indices whose leading terms are rational functions with poles at the origin.
 
 The resulting family is therefore \emph{not} the classical \(n\)-ball volume continued via the Gamma function
 \[
@@ -104,9 +104,10 @@ The remainder of the paper is organized as follows. Section~2 fixes notation and
 \begin{definition}
 A pair of functions \((\partial B_n(r), B_n(r))\) is said to satisfy the \emph{surface-volume recurrence} if
 \begin{enumerate}[label=(\roman*)]
-\item the multiplicative relation \eqref{eq:recurrence} holds for all \(r\neq 0\),
-\item the integral relation \eqref{eq:integral} holds wherever the integral converges in the Lebesgue sense.
+\item the multiplicative relation \eqref{eq:recurrence} holds for all \(r\neq 0\), and
+\item on the positive branch (\(n\ge 1\)) the integral relation \eqref{eq:integral} additionally holds, equivalently \(\partial B_n = \tfrac{d}{dr}B_n\).
 \end{enumerate}
+The multiplicative relation~(i) is the defining law of the whole family; the integral relation~(ii) is an extra constraint that the positive branch satisfies by construction but that the negative branch does not (Section~4).
 \end{definition}
 
 The five seed pairs listed in the Introduction are chosen so that both relations are satisfied for the lowest indices and so that the classical Euclidean formulas are recovered exactly. In particular,
@@ -119,7 +120,7 @@ are the area of the unit disk and the volume of the unit 3-ball, respectively.
 
 We generate the forward branch by repeated application of the recurrence followed by term-by-term integration.
 
-\begin{proposition}
+\begin{proposition}\label{prop:forward}
 Starting from the seeds at \(n=1,2\), the recurrence produces
 \begin{align*}
 \partial B_3 &= 4\pi r^2, & B_3 &= \tfrac43\pi r^3, \\
@@ -130,18 +131,22 @@ and so on. Each new surface term is obtained by multiplication and each new volu
 \end{proposition}
 
 \begin{proof}
-The first step was shown in the Introduction. Assume the expressions hold up to index \(n\). Then
+The first step was shown in the Introduction. Suppose the claimed forms hold up to index \(n\), with \(\deg_r \partial B_m = \deg_r B_m - 1\) for all \(m\le n\) (true for the seeds). Then
 \[
 \partial B_{n+1} = \partial B_n \cdot B_{n-1}
 \]
-is again a monomial whose radial exponent is the sum of the exponents of the two factors. Because the exponent in \(\partial B_n\) is always one less than that in \(B_n\) (by the fundamental theorem of calculus applied inductively), the new exponent after multiplication is never \(-1\). Consequently the indefinite integral is again a monomial, and the definite integral from 0 to \(r\) is well-defined and yields precisely the claimed \(B_{n+1}\). By induction the whole positive branch is generated consistently.
+is a monomial of radial degree \((e_n-1)+e_{n-1} = e_{n+1}-1 \ge 1\), using \(e_{n+1}=e_n+e_{n-1}\). In particular this exponent is never \(-1\), so the antiderivative is again a monomial and
+\[
+B_{n+1}(r)=\int_0^r \partial B_{n+1}(r')\,dr' = \frac{1}{e_{n+1}}\,(\text{coeff})\,r^{\,e_{n+1}}
+\]
+is well-defined, with \(\deg_r \partial B_{n+1} = e_{n+1}-1 = \deg_r B_{n+1}-1\), closing the induction. The displayed values for \(n=3,4,5\) are the first three instances.
 \end{proof}
 
-The radial degrees \(e_n\) (power of \(r\) in \(B_n\)) satisfy the recurrence
+The radial degrees \(e_n\) (power of \(r\) in \(B_n\)) satisfy the \emph{pure Fibonacci} recurrence
 \[
-e_{n+1} = e_n + e_{n-1} + 1
+e_{n+1} = e_n + e_{n-1}, \qquad e_1 = 1,\ e_2 = 2,
 \]
-with initial conditions \(e_1=1\), \(e_2=2\). This is a linear non-homogeneous Fibonacci-type relation whose solution grows as \(\phi^n\) (golden-ratio base), explaining the rapid increase visible in the table below.
+so that \(e_n = F_{n+1}\), the \((n{+}1)\)-th Fibonacci number. This is immediate from the multiplicative rule: the radial exponent of \(\partial B_{n+1}=\partial B_n\cdot B_{n-1}\) is the sum of the exponents of its two factors, and since on the positive branch \(\deg_r \partial B_m = \deg_r B_m - 1\) (the surface is the radial derivative of the volume), one has \(\deg_r \partial B_{n+1} = (e_n-1) + e_{n-1}\) and hence \(e_{n+1} = \deg_r \partial B_{n+1} + 1 = e_n + e_{n-1}\). The exponents therefore grow as \(\varphi^{\,n}\) (golden-ratio base), explaining the rapid increase visible in the table below; this is established in detail in Section~\ref{sec:stirling}.
 
 \section{Negative-Index Extension}
 
@@ -156,10 +161,10 @@ The recurrence rearranged as
 \end{lemma}
 
 \begin{proof}
-Direct verification for the first few steps (shown in Section~5) and induction on the finite set \(|n|\leq 10\) suffice, since each step is an algebraic identity of rational functions (away from \(r=0\)).
+Each step is an algebraic identity between rational functions (away from \(r=0\)), so it suffices to verify the finitely many cases in the tabulated range \(-10\le n\le 0\) by direct substitution; this is carried out in Section~5. No induction is required, since the range is finite.
 \end{proof}
 
-For the negative odd indices the integral relation \eqref{eq:integral} diverges at the origin; the listed \(B_n\) are nevertheless the meromorphic functions \emph{determined by the chosen seeds} that keep the multiplicative recurrence satisfied throughout the whole integer line. (The recurrence alone does not pin them down; the seed choice does.) This is loosely analogous to the way analytic continuation via the Gamma function assigns finite values to expressions that diverge in the original integral representation.
+For the negative indices the integral relation \eqref{eq:integral} does \emph{not} reproduce the tabulated \(B_n\): at negative odd indices the integral diverges at the origin, while at negative even indices it converges but to a different monomial (e.g.\ \(\int_0^r \partial B_{-10}\,dr' = -r/(32\pi^4)\), whereas the recurrence-determined value is \(B_{-10}=-r^5/(32\pi^4)\)). The negative branch is therefore generated by the multiplicative recurrence and the chosen seeds \emph{alone}; the volume-from-surface integral (Convention~A) is a feature of the positive branch only. Equivalently, the identity \(\partial B_n = \tfrac{d}{dr}B_n\) holds for \(n\ge 1\) but fails for \(n\le -1\) (it holds incidentally only at \(n=-2\)). The listed \(B_n\) for \(n<0\) are the meromorphic functions \emph{determined by the chosen seeds} that keep the multiplicative recurrence satisfied throughout the whole integer line. (The recurrence alone does not pin them down; the seed choice does.) This is loosely analogous to the way analytic continuation via the Gamma function assigns finite values to expressions that diverge in the original integral representation.
 
 \section{Explicit Table and Recurrence Verification}
 
@@ -205,7 +210,7 @@ Every consecutive triple in Table~\ref{tab:full} satisfies the multiplicative re
 \end{theorem}
 
 \begin{proof}
-The positive branch (\(n\geq 1\)) is generated precisely by the procedure of Proposition~1; each multiplication step followed by integration preserves the relation by construction. For the negative branch it is sufficient to verify the algebraic identity
+The positive branch (\(n\geq 1\)) is generated precisely by the procedure of Proposition~\ref{prop:forward}; each multiplication step followed by integration preserves the relation by construction. For the negative branch it is sufficient to verify the algebraic identity
 \[
 \partial B_{n+1} - \partial B_n \cdot B_{n-1} \equiv 0
 \]
@@ -230,7 +235,7 @@ It is instructive to set \(B_n(r)\) against the Euclidean ball volume
 \[
 V_n(r) = \frac{\pi^{n/2}}{\Gamma(n/2+1)}\, r^n .
 \]
-The two functions coincide for \(n=1,2,3\), where both reduce to \(2r\), \(\pi r^2\), and \(\tfrac43\pi r^3\) respectively. They differ for \emph{every} \(n\geq 4\). The discrepancy is structural rather than a matter of normalization: the radial degree of \(V_n\) is exactly \(n\), whereas the radial degree \(e_n\) of \(B_n\) obeys \(e_{n+1}=e_n+e_{n-1}+1\) and equals the Fibonacci number \(F_{n+1}\),
+The two functions coincide for \(n=1,2,3\), where both reduce to \(2r\), \(\pi r^2\), and \(\tfrac43\pi r^3\) respectively. They differ for \emph{every} \(n\geq 4\). The discrepancy is structural rather than a matter of normalization: the radial degree of \(V_n\) is exactly \(n\), whereas the radial degree \(e_n\) of \(B_n\) obeys the pure Fibonacci recurrence \(e_{n+1}=e_n+e_{n-1}\) (Section~3) and equals the Fibonacci number \(F_{n+1}\),
 \[
 (e_1,e_2,\dots,e_{10}) = (1,2,3,5,8,13,21,34,55,89).
 \]
@@ -265,7 +270,7 @@ The equality \(e_n=n\) holds only at \(n=1,2,3\), which is precisely where Fibon
 \label{fig:cmp}
 \end{figure}
 
-The conclusion is that \(B_n\) should \emph{not} be read as an alternative analytic continuation of the ball volume. A genuine continuation must reproduce \(V_n\) at every non-negative integer \(n\); \(B_n\) already fails this at \(n=4\). The Gamma-function formula remains the unique interpolation that is log-convex and reduces to the integer volumes (Bohr--Mollerup-type uniqueness; cf.\ Ref.~\cite{ballus2025}). What the present construction offers instead is a distinct, multiplicatively generated integer sequence that happens to share its three lowest members with the classical volumes — interesting as an algebraic object, but a different object.
+The conclusion is that \(B_n\) should \emph{not} be read as an alternative analytic continuation of the ball volume. A genuine continuation must reproduce \(V_n\) at every non-negative integer \(n\); \(B_n\) already fails this at \(n=4\). The Gamma-function formula remains the unique interpolation that is log-convex and reduces to the integer volumes (Bohr--Mollerup-type uniqueness; cf.\ Ref.~\cite{artin1964}). What the present construction offers instead is a distinct, multiplicatively generated integer sequence that happens to share its three lowest members with the classical volumes — interesting as an algebraic object, but a different object.
 
 \subsection{Stirling asymptotics and two opposing growth laws}
 \label{sec:stirling}
@@ -284,14 +289,14 @@ The factor \((2\pi e/n)^{n/2}\) is the origin of the well-known behaviour of hig
 \deg_r B_n = F_{n+1}, \qquad (\text{power of }\pi\text{ in }B_n) = F_{n-1},
 \label{eq:fibexp}
 \end{equation}
-where \(F_k\) is the \(k\)-th Fibonacci number (\(F_1=F_2=1\)). The radial-degree recursion \(e_{n+1}=e_n+e_{n-1}+1\) is linearized by the substitution \(f_n=e_n+1\), which obeys the pure Fibonacci recursion \(f_{n+1}=f_n+f_{n-1}\); hence \(e_n=F_{n+1}\) follows immediately. Consequently, at unit radius,
+where \(F_k\) is the \(k\)-th Fibonacci number (\(F_1=F_2=1\)). The radial-degree recursion is already the pure Fibonacci recursion \(e_{n+1}=e_n+e_{n-1}\) with \(e_1=1,\,e_2=2\), so \(e_n=F_{n+1}\) directly; the \(\pi\)-power obeys the same recursion shifted by two indices. Consequently the leading growth at unit radius is governed by the golden ratio:
 \begin{equation}
-B_n(1)\;\sim\;\pi^{F_{n-1}}, \qquad \log B_n(1)\;\sim\;\frac{\varphi^{\,n}}{\sqrt5}\,\log\pi,
+\log B_n(1)\;\sim\;C\,\varphi^{\,n}, \qquad C = \lim_{n\to\infty}\frac{\log B_n(1)}{\varphi^{\,n}}\approx 0.23,
 \label{eq:Bgrowth}
 \end{equation}
-with \(\varphi=(1+\sqrt5)/2\) the golden ratio. The empirical ratios \(e_n/e_{n-1}\) converge to \(\varphi\) (\(1.5,\,1.667,\,1.600,\,1.625,\dots\to 1.618\)), confirming \eqref{eq:Bgrowth}.
+with \(\varphi=(1+\sqrt5)/2\) the golden ratio. (The cruder estimate \(B_n(1)\approx\pi^{F_{n-1}}\) captures the dominant \(\pi\)-power but omits the rational prefactor, which decreases steadily and is \emph{not} negligible: at \(n=10\) it lowers \(\log_{10}B_n(1)\) from \(16.9\) to the true value \(12.5\). Equation~\eqref{eq:Bgrowth} uses the exact values and is the reliable asymptotic.) The empirical ratios \(e_n/e_{n-1}\) converge to \(\varphi\) (\(1.5,\,1.667,\,1.600,\,1.625,\dots\to 1.618\)).
 
-\paragraph{The two laws side by side.} Equation \eqref{eq:stirling} decays like \(e^{-(n/2)\log n}\); equation \eqref{eq:Bgrowth} grows like \(e^{\,\varphi^n}\) — a doubly-exponential increase. The two families therefore separate not merely in magnitude but in the very nature of their growth, as Table~\ref{tab:asym} makes explicit. There is, in short, no asymptotic regime in which \(B_n\) approximates \(V_n\); they are driven by different special functions in opposite directions.
+\paragraph{The two laws side by side.} Equation \eqref{eq:stirling} decays like \(e^{-(n/2)\log n}\); equation \eqref{eq:Bgrowth} grows like \(e^{\,C\varphi^n}\) — a doubly-exponential increase driven by the golden ratio. The two families therefore separate not merely in magnitude but in the very nature of their growth, as Table~\ref{tab:asym} makes explicit. There is, in short, no asymptotic regime in which \(B_n\) approximates \(V_n\); they are driven by different special functions in opposite directions.
 
 \begin{table}[h]
 \centering
@@ -301,9 +306,9 @@ with \(\varphi=(1+\sqrt5)/2\) the golden ratio. The empirical ratios \(e_n/e_{n-
 \toprule
 \(n\) & \(\log_{10} V_n(1)\) (Stirling) & \(\log_{10} B_n(1)\) & dominant mechanism \\
 \midrule
-10 & \(+0.4\)  & \(\approx 12\)      & \(\Gamma\) vs.\ \(\pi^{F_{n-1}}\) \\
-20 & \(-1.6\)  & \(\approx 3{,}400\)  & \\
-30 & \(-4.7\)  & \(\approx 4\times10^{5}\) & \\
+10 & \(+0.4\)  & \(12.5\)      & \(\Gamma\) vs.\ golden-ratio growth \\
+20 & \(-1.6\)  & \(\approx 1.5\times10^{3}\)  & \\
+30 & \(-4.7\)  & \(\approx 1.9\times10^{5}\) & \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -358,8 +363,8 @@ Wikipedia contributors, ``Volume of an \(n\)-ball,'' \url{https://en.wikipedia.o
 \bibitem{mathoverflow-neg}
 MathOverflow, ``Formula for volume of \(n\)-ball for negative \(n\),'' \url{https://mathoverflow.net/questions/354100} (2020).
 
-\bibitem{ballus2025}
-A.~Ballús Santacana, ``Analytic uniqueness of ball volume interpolation,'' preprint (2025).
+\bibitem{artin1964}
+E.~Artin, \emph{The Gamma Function}, Holt, Rinehart and Winston, New York, 1964 (translated by M.~Butler); reprinted in \emph{Exposition by Emil Artin: A Selection}, Amer.\ Math.\ Soc., 2007. (Bohr--Mollerup theorem and the log-convex characterization of \(\Gamma\).)
 
 \bibitem{kohmoto1983}
 M.~Kohmoto, L.~P.~Kadanoff, and C.~Tang, ``Localization problem in one dimension: Mapping and escape,'' \emph{Phys.\ Rev.\ Lett.} \textbf{50} (1983), no.~23, 1870--1872.
